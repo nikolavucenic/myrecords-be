@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(path = ["/auth"])
 class AuthController(
     private val authService: AuthService
 ) {
 
     data class AuthRequest(
-        @field:Email("Invalid email format.")
+        @field:Email(message = "Invalid email format.")
         val email: String,
         @field:Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{9,}\$",
@@ -30,20 +30,20 @@ class AuthController(
         val refreshToken: String
     )
 
-    @PostMapping("/register")
+    @PostMapping(path = ["/register"])
     fun register(
         @Valid @RequestBody body: AuthRequest
     ) {
         authService.register(body.email, body.password)
     }
 
-    @PostMapping("/login")
+    @PostMapping(path = ["/login"])
     fun login(
         @RequestBody body: AuthRequest
     ): TokenPair =
         authService.login(body.email, body.password)
 
-    @PostMapping("/refresh")
+    @PostMapping(path = ["/refresh"])
     fun refresh(
         @RequestBody body: RefreshRequest
     ): TokenPair =
