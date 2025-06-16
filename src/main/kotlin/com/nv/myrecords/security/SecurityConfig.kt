@@ -21,13 +21,18 @@ class SecurityConfig(
             .csrf { csrf -> csrf.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/auth/**")
-                    .permitAll()
+                auth
+                    .requestMatchers(
+                        "/auth/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/openapi.json"
+                    ).permitAll()
                     .dispatcherTypeMatchers(
                         DispatcherType.ERROR,
                         DispatcherType.FORWARD
-                    )
-                    .permitAll()
+                    ).permitAll()
                     .anyRequest()
                     .authenticated()
             }
