@@ -91,7 +91,7 @@ class RecordController(
             record.toResponse()
         }
 
-    @DeleteMapping(path = ["/{id"])
+    @DeleteMapping(path = ["/{id}"])
     fun deleteById(@PathVariable id: String) {
         val record = repository.findById(ObjectId(id)).orElseThrow {
             IllegalArgumentException("Record not found")
