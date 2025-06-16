@@ -1,4 +1,4 @@
-package com.nv.myrecords.database.security
+package com.nv.myrecords.security
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

@@ -1,4 +1,4 @@
-package com.nv.myrecords.database.security
+package com.nv.myrecords.security
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -12,7 +12,7 @@ import java.util.Date
 
 @Service
 class JwtService(
-    @Value("\${jwt.service}") private val jwtSecret: String
+    @Value("\${jwt.secret}") private val jwtSecret: String
 ) {
 
     private val secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret))

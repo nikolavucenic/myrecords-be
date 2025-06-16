@@ -1,4 +1,4 @@
-package com.nv.myrecords.database.security
+package com.nv.myrecords.security
 
 import com.nv.myrecords.database.model.RefreshToken
 import com.nv.myrecords.database.model.User

@@ -1,4 +1,4 @@
-package com.nv.myrecords.database.security
+package com.nv.myrecords.security
 
 import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean

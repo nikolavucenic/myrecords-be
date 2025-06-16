@@ -1,7 +1,7 @@
 package com.nv.myrecords.controllers
 
-import com.nv.myrecords.database.security.AuthService
-import com.nv.myrecords.database.security.TokenPair
+import com.nv.myrecords.security.AuthService
+import com.nv.myrecords.security.TokenPair
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern

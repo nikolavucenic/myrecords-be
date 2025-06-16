@@ -1,4 +1,4 @@
-package com.nv.myrecords.database.security
+package com.nv.myrecords.security
 
 data class TokenPair(
     val accessToken: String,
