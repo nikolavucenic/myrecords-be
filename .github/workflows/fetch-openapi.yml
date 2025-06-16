@@ -22,25 +22,29 @@ jobs:
       - name: 📦 Grant execute permissions
         run: chmod +x ./gradlew
 
-      - name: 🚀 Build the project
-        run: ./gradlew build -x test
-
-      - name: 🌐 Start app in background
+      - name: 🚀 Start app in background
         run: |
           ./gradlew bootRun &
-          echo "⏳ Waiting for Spring Boot app to start..."
-          sleep 20
+          echo "⏳ Waiting for app to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/actuator/health | grep UP > /dev/null; then
+              echo "✅ App is up!"
+              break
+            fi
+            echo "⏳ Still waiting... ($i)"
+            sleep 2
+          done
 
       - name: 📥 Fetch OpenAPI spec
         run: |
           curl -f http://localhost:8080/v3/api-docs -o openapi.json
 
-      - name: 📁 Copy openapi.json to static folder
+      - name: 📁 Copy to static folder
         run: |
           mkdir -p src/main/resources/static
           cp openapi.json src/main/resources/static/openapi.json
 
-      - name: ⬆️ Upload openapi.json as GitHub artifact
+      - name: ⬆️ Upload openapi.json
         uses: actions/upload-artifact@v4
         with:
           name: openapi.json
