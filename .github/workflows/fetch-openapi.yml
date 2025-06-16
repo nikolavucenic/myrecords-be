@@ -1,4 +1,4 @@
-name: Generate and Deploy OpenAPI Spec
+name: generate-openapi
 
 on:
   push:
@@ -6,45 +6,53 @@ on:
       - main
 
 jobs:
-  generate-openapi:
+  generate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🔄 Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: ⚙️ Set up JDK
-        uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 📦 Grant execute permissions
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: 🚀 Start app in background
+      - name: Build app
+        run: ./gradlew build -x test
+
+      - name: Run Spring Boot app in background
+        run: java -jar build/libs/*.jar &
+      
+      - name: Wait for app to be ready
         run: |
-          ./gradlew bootRun &
-          echo "⏳ Waiting for app to start..."
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/actuator/health | grep UP > /dev/null; then
-              echo "✅ App is up!"
+          echo "⏳ Waiting for Spring Boot app to start..."
+          for i in {1..20}; do
+            if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+              echo "✅ Spring Boot app is up"
               break
             fi
-            echo "⏳ Still waiting... ($i)"
-            sleep 2
+            echo "⏳ Attempt $i/20..."
+            sleep 3
           done
 
-      - name: 📥 Fetch OpenAPI spec
-        run: |
-          curl -f http://localhost:8080/v3/api-docs -o openapi.json
+      - name: Fetch OpenAPI spec
+        run: curl -f http://localhost:8080/v3/api-docs -o openapi.json
 
-      - name: 📁 Copy to static folder
-        run: |
-          mkdir -p src/main/resources/static
-          cp openapi.json src/main/resources/static/openapi.json
-
-      - name: ⬆️ Upload openapi.json
+      - name: Upload OpenAPI spec
         uses: actions/upload-artifact@v4
         with:
           name: openapi.json
