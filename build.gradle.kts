@@ -57,29 +57,33 @@ tasks.withType<Test> {
 
 val fetchOpenApiSpec by tasks.registering {
 	group = "documentation"
-	description = "Start app, fetch OpenAPI spec, stop app"
+	description = "Fetch OpenAPI spec from the running app and copy to static folder"
 
 	doLast {
 		val outputFile = file("src/main/resources/static/openapi.json")
-		val process = ProcessBuilder("./gradlew", "bootRun")
-			.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-			.redirectError(ProcessBuilder.Redirect.INHERIT)
-			.start()
+		val url = URL("http://localhost:8080/v3/api-docs")
 
-		println("🚀 Starting Spring Boot app... waiting 15s")
-		Thread.sleep(15000)
+		println("➡️ Waiting for server to start...")
+		val maxAttempts = 20
+		val delayMillis = 1000L
 
-		try {
-			println("📥 Fetching OpenAPI spec...")
-			val json = URL("http://localhost:8080/v3/api-docs").readText()
-			outputFile.parentFile.mkdirs()
-			outputFile.writeText(json)
-			println("✅ Swagger spec saved to ${outputFile.absolutePath}")
-		} catch (e: Exception) {
-			throw GradleException("❌ Failed to fetch OpenAPI spec: ${e.message}")
-		} finally {
-			println("🛑 Stopping app...")
-			process.destroy()
+		var success = false
+		repeat(maxAttempts) { attempt ->
+			try {
+				val json = url.readText()
+				outputFile.parentFile.mkdirs()
+				outputFile.writeText(json)
+				println("Swagger spec written to ${outputFile.absolutePath}")
+				success = true
+				return@repeat
+			} catch (e: Exception) {
+				println("Attempt ${attempt + 1}/$maxAttempts failed: ${e.message}")
+				Thread.sleep(delayMillis)
+			}
+		}
+
+		if (!success) {
+			throw GradleException("Failed to fetch OpenAPI spec after $maxAttempts attempts.")
 		}
 	}
 }
