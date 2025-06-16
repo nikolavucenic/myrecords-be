@@ -1,34 +1,47 @@
-name: Fetch OpenAPI Spec
+name: Generate and Deploy OpenAPI Spec
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  fetch-swagger:
+  generate-openapi:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Wait for deployed backend to be ready
-        run: |
-          echo "Waiting for the backend to be ready..."
-          for i in {1..20}; do
-            if curl --fail --silent http://myrecords-be-production.up.railway.app/v3/api-docs; then
-              echo "Backend is up!"
-              break
-            fi
-            echo "Attempt $i: Not ready yet..."
-            sleep 10
-          done
+      - name: 🔄 Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Fetch openapi.json
-        run: |
-          curl http://myrecords-be-production.up.railway.app/v3/api-docs -o openapi.json
-          echo "✅ openapi.json fetched"
-
-      - name: Upload openapi.json as artifact
-        uses: actions/upload-artifact@v4
+      - name: ⚙️ Set up JDK
+        uses: actions/setup-java@v3
         with:
-          name: openapi-spec
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 📦 Grant execute permissions
+        run: chmod +x ./gradlew
+
+      - name: 🚀 Build the project
+        run: ./gradlew build -x test
+
+      - name: 🌐 Start app in background
+        run: |
+          ./gradlew bootRun &
+          echo "Waiting for server to start..."
+          sleep 20
+
+      - name: 📥 Fetch OpenAPI spec
+        run: |
+          curl -f http://localhost:8080/v3/api-docs -o openapi.json
+
+      - name: 📁 Copy openapi.json to static folder
+        run: |
+          mkdir -p src/main/resources/static
+          cp openapi.json src/main/resources/static/openapi.json
+
+      - name: ⬆️ Upload openapi.json as GitHub artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: openapi.json
           path: openapi.json
