@@ -1,3 +1,5 @@
+import java.net.URL
+
 plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
@@ -51,4 +53,37 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+val fetchOpenApiSpec by tasks.registering {
+	group = "documentation"
+	description = "Start app, fetch OpenAPI spec, stop app"
+
+	doLast {
+		val outputFile = file("src/main/resources/static/openapi.json")
+		val process = ProcessBuilder("./gradlew", "bootRun")
+			.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+			.redirectError(ProcessBuilder.Redirect.INHERIT)
+			.start()
+
+		println("🚀 Starting Spring Boot app... waiting 15s")
+		Thread.sleep(15000)
+
+		try {
+			println("📥 Fetching OpenAPI spec...")
+			val json = URL("http://localhost:8080/v3/api-docs").readText()
+			outputFile.parentFile.mkdirs()
+			outputFile.writeText(json)
+			println("✅ Swagger spec saved to ${outputFile.absolutePath}")
+		} catch (e: Exception) {
+			throw GradleException("❌ Failed to fetch OpenAPI spec: ${e.message}")
+		} finally {
+			println("🛑 Stopping app...")
+			process.destroy()
+		}
+	}
+}
+
+tasks.named("build") {
+	dependsOn("fetchOpenApiSpec")
 }
