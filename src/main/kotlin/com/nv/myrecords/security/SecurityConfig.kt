@@ -27,7 +27,8 @@ class SecurityConfig(
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/openapi.json"
+                        "/openapi.json",
+                        "/api-docs"
                     ).permitAll()
                     .dispatcherTypeMatchers(
                         DispatcherType.ERROR,
