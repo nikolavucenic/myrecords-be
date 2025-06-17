@@ -26,7 +26,7 @@ class RecordController(
         val totalTracks: Int,
         val url: String,
         val images: List<String>,
-        @field:NotBlank(message = "Record name can't be empty.")
+        @field:NotBlank(message = "Record name can not be empty.")
         val name: String,
         val releaseDate: String,
         val artistsId: List<String>,
